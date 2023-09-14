@@ -6,33 +6,56 @@ import { NextResponse } from "next/server";
 export const GET = async (request) => {
   readDB();
 
-  // return NextResponse.json(
-  //   {
-  //     ok: false,
-  //     message: `Room is not found`,
-  //   },
-  //   { status: 404 }
-  // );
+  const room = DB.rooms.find((room) => room.roomId === roomId);
+  const roomId = request.nextUrl.searchParams.get("roomId");
+
+  if (!room) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: `Room is not found`,
+      },
+      { status: 404 }
+    );
+  }
+
+  const ReturnMessage = DB.messages.filter(
+    (message) => message.roomId === roomId
+  );
+  return NextResponse.json({
+    ok: true,
+    ReturnMessage,
+  });
 };
 
 export const POST = async (request) => {
   readDB();
 
-  // return NextResponse.json(
-  //   {
-  //     ok: false,
-  //     message: `Room is not found`,
-  //   },
-  //   { status: 404 }
-  // );
+  const body = await request.json();
+  const { roomId, messageText } = body;
+  const room = DB.rooms.find((room) => room.roomId === roomId);
+
+  if (!room) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: `Room is not found`,
+      },
+      { status: 404 }
+    );
+  }
 
   const messageId = nanoid();
+  DB.messages.push({
+    roomId,
+    messageId,
+    messageText,
+  });
 
   writeDB();
-
   return NextResponse.json({
     ok: true,
-    // messageId,
+    messageId,
     message: "Message has been sent",
   });
 };
